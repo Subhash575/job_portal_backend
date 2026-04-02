@@ -10,7 +10,7 @@ import applicationRoute from "./routes/application.route.js";
 //In this way we connect to mongodb
 
 // remember here we intialize the empty object
-dotenv.config({});
+dotenv.config();
 
 const app = express();
 
@@ -29,12 +29,25 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-const corsOptions = {
-  //frontend build we use the react vite(imp to remember)
-  origin: "http://localhost:5173",
-  credentials: true,
-};
-app.use(cors(corsOptions));
+
+//frontend build we use the react vite(imp to remember)
+// const corsOptions = {
+//   origin: "http://localhost:5173",
+//   credentials: true,
+// };
+// app.use(cors(corsOptions));
+
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  }),
+);
+
+// Add Test Route
+app.get("/", (req, res) => {
+  res.send("Backend is running");
+});
 
 const PORT = process.env.PORT || 5000;
 
@@ -45,7 +58,14 @@ app.use("/api/v1/job", jobRoute);
 app.use("/api/v1/application", applicationRoute);
 
 //It take the port and callback function
-app.listen(PORT, () => {
-  connectDB();
-  console.log(`Server running at port ${PORT}`);
+// app.listen(PORT, () => {
+//   connectDB();
+//   console.log(`Server running at port ${PORT}`);
+// });
+
+// connect DB first, then start server
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Server running at port ${PORT}`);
+  });
 });
