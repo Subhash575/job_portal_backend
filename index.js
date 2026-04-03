@@ -37,9 +37,21 @@ app.use(cookieParser());
 // };
 // app.use(cors(corsOptions));
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.FRONTEND_URL, // Set this in Render: https://your-app.vercel.app
+].filter(Boolean); // Remove undefined if FRONTEND_URL not set yet
+
 app.use(
   cors({
-    origin: true,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g. mobile apps, Postman, curl)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS blocked: ${origin} not allowed`));
+      }
+    },
     credentials: true,
   }),
 );

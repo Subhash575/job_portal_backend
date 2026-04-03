@@ -120,8 +120,9 @@ export const login = async (req, res) => {
       .status(200)
       .cookie("token", token, {
         maxAge: 1 * 24 * 60 * 60 * 1000,
-        httpsOnly: true,
-        sameSite: "strict",
+        httpOnly: true,   // Prevents JS access to cookie (XSS protection)
+        secure: true,     // HTTPS only in production
+        sameSite: "none", // Required for cross-origin cookies (Vercel ↔ Render)
       })
       .json({
         message: `Welcome back ${user.fullname}`,
