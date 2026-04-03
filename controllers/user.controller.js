@@ -15,12 +15,9 @@ export const register = async (req, res) => {
         success: false,
       });
     }
-    const file = req.file;
-    const fileUri = getDataUri(file);
-    const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
 
-    //Already sigining email not use for another siging therefore we check the email
-    //alreday use or not.
+    //Already signing email not use for another signing therefore we check the email
+    //already use or not.
     const user = await User.findOne({ email });
     if (user) {
       return res.status(400).json({
@@ -28,6 +25,16 @@ export const register = async (req, res) => {
         success: false,
       });
     }
+
+    // Profile photo is optional — only upload if a file was provided
+    let profilePhotoUrl = "";
+    const file = req.file;
+    if (file) {
+      const fileUri = getDataUri(file);
+      const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+      profilePhotoUrl = cloudResponse.secure_url;
+    }
+
     //Here we hashedPassword for protection from the hacking.
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -38,7 +45,7 @@ export const register = async (req, res) => {
       password: hashedPassword,
       role,
       profile: {
-        profilePhoto: cloudResponse.secure_url,
+        profilePhoto: profilePhotoUrl,
       },
     });
 
@@ -48,6 +55,10 @@ export const register = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    return res.status(500).json({
+      message: "Internal server error. Please try again.",
+      success: false,
+    });
   }
 };
 
@@ -119,6 +130,10 @@ export const login = async (req, res) => {
       });
   } catch (error) {
     console.log(error);
+    return res.status(500).json({
+      message: "Internal server error. Please try again.",
+      success: false,
+    });
   }
 };
 
@@ -191,5 +206,9 @@ export const updateProfile = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    return res.status(500).json({
+      message: "Internal server error. Please try again.",
+      success: false,
+    });
   }
 };
